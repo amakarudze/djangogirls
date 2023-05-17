@@ -1,6 +1,7 @@
 import csv
 
 from django.contrib import messages
+from django.db import IntegrityError
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.defaultfilters import striptags
@@ -38,8 +39,11 @@ def apply(request, page_url):
     form = ApplicationForm(request.POST or None, form=form_obj)
 
     if form.is_valid():
-        form.save()
-        messages.success(request, _("Yay! Your application has been saved. You'll hear from us soon!"))
+        try:
+            form.save()
+            messages.success(request, _("Yay! Your application has been saved. You'll hear from us soon!"))
+        except IntegrityError:
+            messages.error(request, "Email already exists!")
 
         return render(
             request,
